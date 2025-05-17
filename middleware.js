@@ -6,7 +6,7 @@ const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/account(.*)",
   "/transaction(.*)",
-]);
+]);//signing is require for accessing route
 
 // Create Arcjet middleware
 const aj = arcjet({
@@ -35,7 +35,8 @@ const clerk = clerkMiddleware(async (auth, req) => {
   if (!userId && isProtectedRoute(req)) {
     const { redirectToSignIn } = await auth();
     return redirectToSignIn();
-  }
+  } //checking useer is loggind in or not 
+  
 
   return NextResponse.next();
 });

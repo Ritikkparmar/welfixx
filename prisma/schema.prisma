@@ -17,8 +17,13 @@ model User {
   transactions  Transaction[]
   accounts      Account[]
   budgets       Budget[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  userChallenges UserChallenge[]
+  rewardPoints  Int       @default(0)
+  streak        Int       @default(0)
+  lastActive    DateTime? 
+  level         Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@map("users")
 }
@@ -99,4 +104,56 @@ enum RecurringInterval {
   WEEKLY
   MONTHLY
   YEARLY
+}
+
+// New models for Challenges
+model Challenge {
+  id              String          @id @default(uuid())
+  title           String
+  description     String
+  type            ChallengeType
+  reward          Int             @default(10)
+  xpPoints        Int             @default(5)
+  difficulty      ChallengeDifficulty @default(EASY)
+  userChallenges  UserChallenge[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("challenges")
+}
+
+model UserChallenge {
+  id            String          @id @default(uuid())
+  userId        String
+  challengeId   String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge     Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  status        ChallengeStatus @default(NOT_STARTED)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+  @@map("user_challenges")
+}
+
+enum ChallengeType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ChallengeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ChallengeStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
 }

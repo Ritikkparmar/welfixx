@@ -6,7 +6,7 @@ import {
   featuresData,
   howItWorksData,
   statsData,
-  testimonialsData,
+  testimonialsData, 
 } from "@/data/landing";
 import HeroSection from "@/components/hero";
 import Link from "next/link";
@@ -112,7 +112,7 @@ const LandingPage = () => {
           </h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of users who are already managing their finances
-            smarter with Welth
+            smarter with Welfix
           </p>
           <Link href="/dashboard">
             <Button
