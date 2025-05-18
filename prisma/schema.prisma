@@ -115,6 +115,8 @@ model Challenge {
   reward          Int             @default(10)
   xpPoints        Int             @default(5)
   difficulty      ChallengeDifficulty @default(EASY)
+  durationDays    Int             @default(7)  // Duration in days
+  status          ChallengeStatus @default(ACTIVE)
   userChallenges  UserChallenge[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -128,7 +130,7 @@ model UserChallenge {
   challengeId   String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   challenge     Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  status        ChallengeStatus @default(NOT_STARTED)
+  status        UserChallengeStatus @default(NOT_STARTED)
   startedAt     DateTime?
   completedAt   DateTime?
   createdAt     DateTime        @default(now())
@@ -153,6 +155,12 @@ enum ChallengeDifficulty {
 }
 
 enum ChallengeStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum UserChallengeStatus {
   NOT_STARTED
   IN_PROGRESS
   COMPLETED

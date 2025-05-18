@@ -44,6 +44,7 @@ export function ReceiptScanner({ onScanComplete }) {
           const file = e.target.files?.[0];
           if (file) handleReceiptScan(file);
         }}
+        suppressHydrationWarning
       />
       <Button
         type="button"

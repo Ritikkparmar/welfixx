@@ -54,6 +54,34 @@ export function useChallenges() {
     }
   };
 
+  // Create a new challenge
+  const createChallenge = async (challengeData) => {
+    try {
+      const response = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(challengeData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create challenge');
+      }
+      
+      const newChallenge = await response.json();
+      
+      // Update local state with the new challenge
+      setChallenges(prev => [...prev, newChallenge]);
+      
+      toast.success('Challenge created successfully!');
+      return newChallenge;
+    } catch (err) {
+      console.error('Error creating challenge:', err);
+      toast.error(err.message || 'Failed to create challenge');
+      throw err;
+    }
+  };
+
   // Start a challenge
   const startChallenge = async (challengeId) => {
     try {
@@ -135,6 +163,7 @@ export function useChallenges() {
     userStats,
     startChallenge,
     completeChallenge,
+    createChallenge,
     refreshChallenges: fetchChallenges
   };
 } 

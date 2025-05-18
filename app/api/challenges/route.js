@@ -53,4 +53,84 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+
+// POST /api/challenges - Create a new challenge
+export async function POST(req) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await checkUser();
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const { title, description, type, difficulty, reward, xpPoints } = body;
+
+    // Validate required fields
+    if (!title || !description || !type || !difficulty) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate challenge type
+    const validTypes = ['DAILY', 'WEEKLY', 'MONTHLY'];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: "Invalid challenge type" },
+        { status: 400 }
+      );
+    }
+
+    // Validate difficulty
+    const validDifficulties = ['EASY', 'MEDIUM', 'HARD'];
+    if (!validDifficulties.includes(difficulty)) {
+      return NextResponse.json(
+        { error: "Invalid difficulty level" },
+        { status: 400 }
+      );
+    }
+
+    // Create the challenge
+    const challenge = await db.challenge.create({
+      data: {
+        title,
+        description,
+        type,
+        difficulty,
+        reward: reward || 100,
+        xpPoints: xpPoints || 50,
+        status: 'ACTIVE'
+      }
+    });
+
+    // Create initial user challenge progress
+    await db.userChallenge.create({
+      data: {
+        userId: user.id,
+        challengeId: challenge.id,
+        status: 'NOT_STARTED'
+      }
+    });
+
+    // Return the challenge with the user's status
+    return NextResponse.json({
+      ...challenge,
+      status: 'NOT_STARTED',
+      startedAt: null,
+      completedAt: null
+    });
+  } catch (error) {
+    console.error("Error creating challenge:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to create challenge" },
+      { status: 500 }
+    );
+  }
 } 
