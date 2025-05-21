@@ -82,11 +82,11 @@ export async function POST(req) {
     const newXP = user.rewardPoints + challenge.xpPoints;
     const newLevel = Math.floor(newXP / 100) + 1; // Simple level formula: 100 XP per level
 
-    // Update user rewards and streak
+    // Update user rewards, XP, and streak
     const updatedUser = await db.user.update({
       where: { id: user.id },
       data: {
-        rewardPoints: { increment: challenge.reward },
+        rewardPoints: { increment: challenge.reward + challenge.xpPoints }, // Add both reward and XP points
         streak: isToday ? user.streak : user.streak + 1,
         lastActive: new Date(),
         level: newLevel

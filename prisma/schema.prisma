@@ -9,21 +9,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  clerkUserId   String    @unique // clerk user id
-  email         String    @unique
-  name          String?
-  imageUrl      String?
-  transactions  Transaction[]
-  accounts      Account[]
-  budgets       Budget[]
+  id             String          @id @default(uuid())
+  clerkUserId    String          @unique
+  email          String          @unique
+  name           String?
+  imageUrl       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  lastActive     DateTime?
+  level          Int             @default(1)
+  rewardPoints   Int             @default(0)
+  streak         Int             @default(0)
+  accounts       Account[]
+  budgets        Budget?
+  transactions   Transaction[]
   userChallenges UserChallenge[]
-  rewardPoints  Int       @default(0)
-  streak        Int       @default(0)
-  lastActive    DateTime? 
-  level         Int       @default(1)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 
   @@map("users")
 }
@@ -32,55 +32,87 @@ model Account {
   id           String        @id @default(uuid())
   name         String
   type         AccountType
-  balance      Decimal       @default(0) // will ask inital balance while creating an account
+  balance      Decimal       @default(0)
   isDefault    Boolean       @default(false)
   userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@index([userId])
   @@map("accounts")
 }
 
 model Transaction {
-  id                String            @id @default(uuid())
-  type             TransactionType
-  amount           Decimal
-  description      String?
-  date             DateTime
-  category         String           
-  receiptUrl       String?
-  isRecurring      Boolean           @default(false)
-  recurringInterval RecurringInterval? // Only used if isRecurring is true
-  nextRecurringDate DateTime?         // Next date for recurring transaction
-  lastProcessed    DateTime?         // Last time this recurring transaction was processed
-  status           TransactionStatus  @default(COMPLETED)
-  userId           String
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accountId        String
-  account          Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                String             @id @default(uuid())
+  type              TransactionType
+  amount            Decimal
+  description       String?
+  date              DateTime
+  receiptUrl        String?
+  isRecurring       Boolean            @default(false)
+  recurringInterval RecurringInterval?
+  nextRecurringDate DateTime?
+  status            TransactionStatus  @default(COMPLETED)
+  userId            String
+  accountId         String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  category          String
+  lastProcessed     DateTime?
+  account           Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([accountId])
   @@map("transactions")
 }
 
-
 model Budget {
-  id          String       @id @default(uuid())
-  amount      Decimal
-  lastAlertSent DateTime?  // Track when the last alert was sent
-  userId      String       @unique
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String    @id @default(uuid())
+  amount        Decimal
+  userId        String    @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastAlertSent DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("budgets")
+}
+
+model Challenge {
+  id             String              @id @default(uuid())
+  title          String
+  description    String
+  type           ChallengeType
+  reward         Int                 @default(10)
+  xpPoints       Int                 @default(5)
+  difficulty     ChallengeDifficulty @default(EASY)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  userChallenges UserChallenge[]
+
+  @@map("challenges")
+}
+
+model UserChallenge {
+  id          String          @id @default(uuid())
+  userId      String
+  challengeId String
+  status      ChallengeStatus @default(NOT_STARTED)
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  challenge   Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+  @@map("user_challenges")
 }
 
 enum TransactionType {
@@ -106,42 +138,6 @@ enum RecurringInterval {
   YEARLY
 }
 
-// New models for Challenges
-model Challenge {
-  id              String          @id @default(uuid())
-  title           String
-  description     String
-  type            ChallengeType
-  reward          Int             @default(10)
-  xpPoints        Int             @default(5)
-  difficulty      ChallengeDifficulty @default(EASY)
-  durationDays    Int             @default(7)  // Duration in days
-  status          ChallengeStatus @default(ACTIVE)
-  userChallenges  UserChallenge[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  @@map("challenges")
-}
-
-model UserChallenge {
-  id            String          @id @default(uuid())
-  userId        String
-  challengeId   String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  challenge     Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  status        UserChallengeStatus @default(NOT_STARTED)
-  startedAt     DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-
-  @@unique([userId, challengeId])
-  @@index([userId])
-  @@index([challengeId])
-  @@map("user_challenges")
-}
-
 enum ChallengeType {
   DAILY
   WEEKLY
@@ -155,12 +151,6 @@ enum ChallengeDifficulty {
 }
 
 enum ChallengeStatus {
-  ACTIVE
-  INACTIVE
-  ARCHIVED
-}
-
-enum UserChallengeStatus {
   NOT_STARTED
   IN_PROGRESS
   COMPLETED

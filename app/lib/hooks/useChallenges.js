@@ -17,6 +17,8 @@ export function useChallenges() {
   const fetchChallenges = async () => {
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
+      
       const [challengesResponse, userStatsResponse] = await Promise.all([
         fetch('/api/challenges'),
         fetch('/api/challenges/stats')
@@ -39,11 +41,16 @@ export function useChallenges() {
         userStatsResponse.json()
       ]);
       
+      if (!Array.isArray(challengesData)) {
+        console.error('Invalid challenges data format:', challengesData);
+        throw new Error('Invalid response format from server');
+      }
+      
       setChallenges(challengesData);
       setUserStats({
-        rewardPoints: userStatsData.rewardPoints,
-        streak: userStatsData.streak,
-        level: userStatsData.level
+        rewardPoints: userStatsData.rewardPoints || 0,
+        streak: userStatsData.streak || 0,
+        level: userStatsData.level || 1
       });
     } catch (err) {
       console.error('Error in fetchChallenges:', err);

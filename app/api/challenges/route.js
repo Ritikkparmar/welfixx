@@ -49,7 +49,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error in challenges API:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch challenges" },
+      { error: "Failed to fetch challenges", details: error.message },
       { status: 500 }
     );
   }

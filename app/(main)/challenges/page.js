@@ -7,7 +7,7 @@ import ChallengeCard from "./ChallengeCard";
 import UserProgress from "./UserProgress";
 import FilterTabs from "./FilterTabs";
 import RewardModal from "./RewardModal";
-import CreateChallengeForm from "./CreateChallengeForm";
+
 import { useChallenges } from "@/app/lib/hooks/useChallenges";
 
 export default function ChallengesPage() {
@@ -79,16 +79,16 @@ export default function ChallengesPage() {
   };
 
   // Handle creating a new challenge
-  const handleCreateChallenge = async (data) => {
-    try {
-      await createChallenge(data);
-      setShowCreateForm(false);
-      refreshChallenges();
-    } catch (error) {
-      console.error("Failed to create challenge:", error);
-      throw error; // Re-throw to be handled by the form
-    }
-  };
+  // const handleCreateChallenge = async (data) => {
+  //   try {
+  //     await createChallenge(data);
+  //     setShowCreateForm(false);
+  //     refreshChallenges();
+  //   } catch (error) {
+  //     console.error("Failed to create challenge:", error);
+  //     throw error; // Re-throw to be handled by the form
+  //   }
+  // };
 
   // Page animations
   const container = {
@@ -102,100 +102,89 @@ export default function ChallengesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white p-4 md:p-8">
-      {/* Header */}
-      <div className="max-w-screen-xl mx-auto">
+    <main className="flex-1 bg-white">
+      <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-8">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-between items-center mb-6"
+          className="flex justify-between items-center mb-8"
         >
           <div>
-            <h1 className="text-6xl font-bold tracking-tight gradient-title">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight gradient-title">
               Challenge Hub
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mt-2">
               Complete challenges, earn rewards, and build your financial habits
             </p>
           </div>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            Create Challenge
-          </button>
         </motion.div>
 
         {/* User Progress */}
-        <UserProgress stats={userStats} />
-
-        {/* Create Challenge Form */}
-        {showCreateForm && (
-          <div className="mb-8">
-            <CreateChallengeForm
-              onSubmit={handleCreateChallenge}
-              onCancel={() => setShowCreateForm(false)}
-            />
-          </div>
-        )}
+        <div className="mb-8">
+          <UserProgress stats={userStats} />
+        </div>
 
         {/* Filter Tabs */}
-        <FilterTabs
-          activeType={activeType}
-          activeStatus={activeStatus}
-          onTypeChange={setActiveType}
-          onStatusChange={setActiveStatus}
-        />
+        <div className="mb-6">
+          <FilterTabs
+            activeType={activeType}
+            activeStatus={activeStatus}
+            onTypeChange={setActiveType}
+            onStatusChange={setActiveStatus}
+          />
+        </div>
 
         {/* Challenge Grid */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Loading challenges...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-red-500">
-            <p>Error loading challenges. Please try again.</p>
-            <button
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
-              onClick={refreshChallenges}
+        <div className="mt-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Loading challenges...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">
+              <p>Error loading challenges. Please try again.</p>
+              <button
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+                onClick={refreshChallenges}
+              >
+                Retry
+              </button>
+            </div>
+          ) : filteredChallenges.length === 0 ? (
+            <div className="text-center py-12 text-gray-600">
+              <p>No challenges found with the selected filters.</p>
+              <button
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+                onClick={() => {
+                  setActiveType("ALL");
+                  setActiveStatus("ALL");
+                }}
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <motion.div
+              className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              variants={container}
+              initial="hidden"
+              animate="show"
             >
-              Retry
-            </button>
-          </div>
-        ) : filteredChallenges.length === 0 ? (
-          <div className="text-center py-12 text-gray-600">
-            <p>No challenges found with the selected filters.</p>
-            <button
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
-              onClick={() => {
-                setActiveType("ALL");
-                setActiveStatus("ALL");
-              }}
-            >
-              Clear Filters
-            </button>
-          </div>
-        ) : (
-          <motion.div
-            className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-            variants={container}
-            initial="hidden"
-            animate="show"
-          >
-            {filteredChallenges.map((challenge, index) => (
-              <ChallengeCard
-                key={challenge.id}
-                challenge={challenge}
-                index={index}
-                onStart={handleStartChallenge}
-                onComplete={handleCompleteChallenge}
-              />
-            ))}
-          </motion.div>
-        )}
+              {filteredChallenges.map((challenge, index) => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  index={index}
+                  onStart={handleStartChallenge}
+                  onComplete={handleCompleteChallenge}
+                />
+              ))}
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Reward Modal */}
