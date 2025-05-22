@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -81,16 +81,27 @@ export function AddTransactionForm({
     data: transactionResult,
   } = useFetch(editMode ? updateTransaction : createTransaction);
 
-  const onSubmit = (data) => {
-    const formData = {
-      ...data,
-      amount: parseFloat(data.amount),
-    };
+  const [loading, setLoading] = useState(false);
 
-    if (editMode) {
-      transactionFn(editId, formData);
-    } else {
-      transactionFn(formData);
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      const formData = {
+        ...data,
+        amount: parseFloat(data.amount),
+      };
+
+      if (editMode) {
+        await transactionFn(editId, formData);
+        toast.success("Transaction updated successfully");
+      } else {
+        await transactionFn(formData);
+        toast.success("Transaction created successfully");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -130,6 +141,12 @@ export function AddTransactionForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">
+          {editMode ? "Edit Transaction" : "Add New Transaction"}
+        </h2>
+      </div>
+
       {/* Receipt Scanner - Only show in create mode */}
       {!editMode && <ReceiptScanner onScanComplete={handleScanComplete} />}
 
@@ -314,8 +331,8 @@ export function AddTransactionForm({
         >
           Cancel
         </Button>
-        <Button type="submit" className="w-full" disabled={transactionLoading}>
-          {transactionLoading ? (
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {editMode ? "Updating..." : "Creating..."}
