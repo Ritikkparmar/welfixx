@@ -25,6 +25,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Page Title */}
+      <div className="px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight gradient-title mb-8">
+          Dashboard
+        </h1>
+      </div>
+
       {/* Budget Progress */}
       <BudgetProgress
         initialBudget={budgetData?.budget}
